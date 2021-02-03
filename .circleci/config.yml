@@ -75,7 +75,7 @@ jobs:
             - ~/.npm
 
       - run: npm run style
-      - run: npm run lint
+      # - run: npm run lint
       - run: npm run build -- --configuration=lemon-mart-server
       - run: npm test -- --watch=false --code-coverage
       - run: npm run e2e
