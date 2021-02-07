@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import * as jwt from 'jsonwebtoken'
-import { ObjectID } from 'mongodb'
+import { ObjectId } from 'mongodb'
 
 import { JwtSecret } from '../config'
 import { Role } from '../models/enums'
@@ -33,7 +33,7 @@ export function createJwt(user: IUser): Promise<string> {
         subject: user._id.toHexString(),
         expiresIn: '1d',
       },
-      (err: Error, encoded: string) => {
+      (err: Error | null, encoded: string | undefined) => {
         if (err) {
           reject(err.message)
         }
@@ -87,7 +87,7 @@ export async function authenticateHelper(
     JwtSecret()
   ) as IJwtPayload
   const currentUser = await UserCollection.findOne({
-    _id: new ObjectID(payload?.sub),
+    _id: new ObjectId(payload?.sub),
   })
   if (!currentUser) {
     throw new Error("User doesn't exist")
