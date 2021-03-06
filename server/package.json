@@ -11,7 +11,10 @@
     "imageRepo": "thosejwis/lemon-mart-server",
     "imageName": "lemon-mart-server",
     "imagePort": "3000",
-    "internalContainerPort": "3000"
+    "internalContainerPort": "3000",
+    "awsRegion": "your_aws_region",
+    "awsEcsCluster": "your_ecs_cluster_name",
+    "awsService": "your_apps_ecs_service_name"
   },
   "scripts": {
     "style:fix": "import-sort --write \"{src,tests}/**/*.ts\" && prettier --write \"{src,tests}/**/*.ts\"",
@@ -48,7 +51,13 @@
     "prepare": "npm run build",
     "init:env": "init-dev-env generate-dot-env example.env -f",
     "docker:stop": "cross-conf-env docker stop $npm_package_config_imageName || true",
-    "docker:open": "sleep 2 && cross-conf-env open-cli http://localhost:$npm_package_config_imagePort"
+    "docker:open": "sleep 2 && cross-conf-env open-cli http://localhost:$npm_package_config_imagePort",
+    "aws:login:win": "cross-conf-env aws ecr get-login --no-include-email --region $npm_package_config_awsRegion > dockerLogin.cmd && call dockerLogin.cmd && del dockerLogin.cmd",
+    "aws:login:mac": "eval $(aws ecr get-login --no-include-email --region $npm_package_config_awsRegion)",
+    "aws:login": "run-p -cs aws:login:win aws:login:mac",
+    "aws:deploy": "cross-conf-env docker run --env-file ./.env silintl/ecs-deploy -c $npm_package_config_awsEcsCluster -n $npm_package_config_awsService -i $npm_package_config_imageRepo:latest -r $npm_package_config_awsRegion --timeout 1000",
+    "aws:release": "run-s -cs aws:login docker:publish aws:deploy",
+    "aws:publish:compose": "cross-conf-env ecs-cli compose --file docker-compose.aws.yml -p $npm_package_name -c $npm_package_config_awsEcsCluster -r $npm_package_config_awsRegion create"
   },
   "repository": {
     "type": "git",
@@ -70,7 +79,7 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "document-ts": "^4.6.3",
-    "express": "^4.17.1",						
+    "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.6.4",
     "morgan": "^1.10.0",
